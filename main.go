@@ -2,10 +2,8 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
@@ -46,28 +44,10 @@ type Cat struct {
 	Type string
 }
 
-func TestGORM(db *gorm.DB) {
-	// CRUD - create
-	db.Create(&Cat{Name: "cat1", Type: "water"})
-	db.Create(&Cat{Name: "cat2", Type: "water"})
-
-	// CRUD - read
-	var cat1 Cat
-	db.First(&cat1, "type = ?", "water") // find cat , id 1
-	err := fmt.Sprintf("cat1 %s %s\n", cat1.Name, cat1.Type)
-	io.WriteString(os.Stdout, err)
-
-	// CRUD - update
-	db.Model(&cat1).Update("type", "fire")
-	// check update
-	var cat2 Cat
-	db.First(&cat2, "type = ?", "water") // select from Cat where type = 'fire'
-	err = fmt.Sprintf("cat2 %s %s\n", cat2.Name, cat2.Type)
-	io.WriteString(os.Stdout, err)
-
-	// CRUD - delete
-	db.Delete(&cat1)
-	db.Delete(&cat2)
+type PPT struct {
+	gorm.Model
+	Name    string
+	DirPath string
 }
 
 func test(c echo.Context) error {
@@ -75,13 +55,10 @@ func test(c echo.Context) error {
 }
 
 func main() {
-
 	db := ConnectDB()
 	defer db.Close()
 
-	db.AutoMigrate(&Cat{})
-
-	TestGORM(db)
+	db.AutoMigrate(&PPT{})
 
 	e := echo.New()
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
@@ -90,8 +67,6 @@ func main() {
 			return next(cdb)
 		}
 	})
-
-	e.GET("/test", test)
 
 	e.Logger.Fatal(e.Start(":8080"))
 }
