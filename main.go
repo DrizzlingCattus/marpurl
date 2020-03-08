@@ -4,49 +4,28 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
+
+	"marpurl/db"
 
 	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo"
 )
 
-var (
-	DBMS       string
-	DBUser     string
-	DBPassword string
-	DBName     string
+const (
+	ModeDev = iota
+	ModeProd
+	ModeTest
 )
 
-func InitEnv(mode string) {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
+func InitEnv(mode int) {
+	if mode == ModeDev {
+		fmt.Println("Loading Development envs")
+		err := godotenv.Load()
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
 	}
-
-	DBMS = os.Getenv("DBMS")
-	DBUser = os.Getenv("DB_USER")
-	DBPassword = os.Getenv("DB_PASSWORD")
-	DBName = os.Getenv("DB_NAME")
-}
-
-func ConnectDB() *gorm.DB {
-	DBConnectOptions := fmt.Sprintf("%s:%s@(localhost:3306)/", DBUser, DBPassword)
-	db, err := gorm.Open(DBMS, DBConnectOptions)
-	if err != nil {
-		log.Fatal("Fail to connect DB", err)
-	}
-
-	db.Exec("CREATE DATABASE IF NOT EXISTS " + DBName)
-
-	// option reference - https://github.com/go-sql-driver/mysql#parameters
-	DBConnectOptions = fmt.Sprintf("%s:%s@(localhost:3306)/%s?charset=utf8&parseTime=True&loc=Local", DBUser, DBPassword, DBName)
-	db, err = gorm.Open("mysql", DBConnectOptions)
-	if err != nil {
-		log.Fatal("Fail to connect DB", err)
-	}
-	return db
 }
 
 type ContextWithDB struct {
@@ -66,18 +45,17 @@ func test(c echo.Context) error {
 
 func main() {
 	// TODO: Mode = os.arg
-	var Mode string = "dev"
-	InitEnv(Mode)
+	InitEnv(ModeDev)
 
-	db := ConnectDB()
-	defer db.Close()
+	tdb := db.Connect()
+	defer tdb.Close()
 
-	db.AutoMigrate(&PPT{})
+	tdb.AutoMigrate(&PPT{})
 
 	e := echo.New()
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			cdb := &ContextWithDB{Context: c, DB: db}
+			cdb := &ContextWithDB{Context: c, DB: tdb}
 			return next(cdb)
 		}
 	})
