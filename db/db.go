@@ -28,7 +28,7 @@ func Connect() *gorm.DB {
 	DBConnectOptions := fmt.Sprintf("%s:%s@(localhost:3306)/", DBUser, DBPassword)
 	db, err := gorm.Open(DBMS, DBConnectOptions)
 	if err != nil {
-		log.Fatal("Fail to connect DB : ", err)
+		log.Fatal("Fail to connect DB before db creation : ", err)
 	}
 
 	db.Exec("CREATE DATABASE IF NOT EXISTS " + DBName)
@@ -37,7 +37,7 @@ func Connect() *gorm.DB {
 	DBConnectOptions = fmt.Sprintf("%s:%s@(localhost:3306)/%s?charset=utf8&parseTime=True&loc=Local", DBUser, DBPassword, DBName)
 	db, err = gorm.Open("mysql", DBConnectOptions)
 	if err != nil {
-		log.Fatal("Fail to connect DB", err)
+		log.Fatal("Fail to connect DB after db creation : ", err)
 	}
 	return db
 }
