@@ -4,18 +4,34 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
+	"github.com/joho/godotenv"
 	"github.com/labstack/echo"
 )
 
-func ConnectDB() *gorm.DB {
-	DBMS := "mysql"
-	DBUser := "user"
-	DBPassword := "62445"
-	DBName := "marpurl"
+var (
+	DBMS       string
+	DBUser     string
+	DBPassword string
+	DBName     string
+)
 
+func InitEnv(mode string) {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	DBMS = os.Getenv("DBMS")
+	DBUser = os.Getenv("DB_USER")
+	DBPassword = os.Getenv("DB_PASSWORD")
+	DBName = os.Getenv("DB_NAME")
+}
+
+func ConnectDB() *gorm.DB {
 	DBConnectOptions := fmt.Sprintf("%s:%s@(localhost:3306)/", DBUser, DBPassword)
 	db, err := gorm.Open(DBMS, DBConnectOptions)
 	if err != nil {
@@ -38,16 +54,10 @@ type ContextWithDB struct {
 	DB *gorm.DB
 }
 
-type Cat struct {
-	gorm.Model
-	Name string
-	Type string
-}
-
 type PPT struct {
 	gorm.Model
-	Name    string
-	DirPath string
+	Name    string `json:"name" gorm:"type:varchar(100);PRIMARY_KEY;NOT NULL"`
+	DirPath string `json:"dirpath" gorm:"type:varchar(255);NOT NULL"`
 }
 
 func test(c echo.Context) error {
@@ -55,6 +65,10 @@ func test(c echo.Context) error {
 }
 
 func main() {
+	// TODO: Mode = os.arg
+	var Mode string = "dev"
+	InitEnv(Mode)
+
 	db := ConnectDB()
 	defer db.Close()
 
@@ -67,6 +81,8 @@ func main() {
 			return next(cdb)
 		}
 	})
+
+	e.GET("/test", test)
 
 	e.Logger.Fatal(e.Start(":8080"))
 }
