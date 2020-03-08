@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"marpurl/db"
+	"marpurl/model"
 
 	"github.com/jinzhu/gorm"
 	"github.com/joho/godotenv"
@@ -33,12 +34,6 @@ type ContextWithDB struct {
 	DB *gorm.DB
 }
 
-type PPT struct {
-	gorm.Model
-	Name    string `json:"name" gorm:"type:varchar(100);PRIMARY_KEY;NOT NULL"`
-	DirPath string `json:"dirpath" gorm:"type:varchar(255);NOT NULL"`
-}
-
 func test(c echo.Context) error {
 	return c.String(http.StatusOK, "test")
 }
@@ -50,7 +45,7 @@ func main() {
 	tdb := db.Connect()
 	defer tdb.Close()
 
-	tdb.AutoMigrate(&PPT{})
+	tdb.AutoMigrate(&model.PPT{})
 
 	e := echo.New()
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
