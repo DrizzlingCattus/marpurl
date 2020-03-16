@@ -1,0 +1,9 @@
+- name: "afile"
+  dir_path: "/test/a"
+  created_at: RAW=NOW()
+  updated_at: RAW=NOW()
+
+- name: "bfile"
+  dir_path: "/test/b"
+  created_at: RAW=NOW()
+  updated_at: RAW=NOW()
