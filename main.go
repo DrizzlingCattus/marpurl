@@ -1,33 +1,15 @@
 package main
 
 import (
-	"fmt"
-	"log"
 	"net/http"
 
 	"marpurl/db"
+	"marpurl/env"
 	"marpurl/model"
 
 	"github.com/jinzhu/gorm"
-	"github.com/joho/godotenv"
 	"github.com/labstack/echo"
 )
-
-const (
-	ModeDev = iota
-	ModeProd
-	ModeTest
-)
-
-func InitEnv(mode int) {
-	if mode == ModeDev {
-		fmt.Println("Loading Development envs")
-		err := godotenv.Load()
-		if err != nil {
-			log.Fatal("Error loading .env file")
-		}
-	}
-}
 
 type ContextWithDB struct {
 	echo.Context
@@ -40,7 +22,7 @@ func test(c echo.Context) error {
 
 func main() {
 	// TODO: Mode = os.arg
-	InitEnv(ModeDev)
+	env.Load(env.DevEnvFilename)
 
 	tdb := db.Connect()
 	defer tdb.Close()
