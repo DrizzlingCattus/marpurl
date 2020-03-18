@@ -3,6 +3,7 @@ package api
 import (
 	"net/http"
 
+	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo"
 )
 
@@ -23,6 +24,7 @@ type (
 
 	webFramework struct {
 		*echo.Echo
+		DB *gorm.DB
 	}
 
 	HandlerFunc    = echo.HandlerFunc
@@ -32,9 +34,11 @@ type (
 	Group          = echo.Group
 )
 
-func NewWebFramework() *webFramework {
+func NewWebFramework(db *gorm.DB) *webFramework {
 	return &webFramework{
 		Echo: echo.New(),
+		// TODO: abstract db layer for loose coupling
+		DB: db,
 	}
 }
 
